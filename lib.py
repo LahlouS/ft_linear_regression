@@ -1,14 +1,11 @@
 import numpy as np
 import pandas as pd
-import sys
-from visualizer import Visualizer
 import matplotlib.pyplot as plt
-import random
 import ast
 
 class L2_average():
 	def __init__(self, std_param, mode='linear'):
-		self.std_param= std_param
+		self.std_param = std_param
 		self.mode = mode
 
 
@@ -25,7 +22,7 @@ class L2_average():
 
 
 class LinearRegression():
-	def __init__(self, data_path='./data.csv', lr=1e-4, nb_epochs=1000, a=0, b=0):
+	def __init__(self, data_path='./data.csv', lr=1e-4, nb_epochs=1000, a=0, b=0, viz=False):
 		self.data_path = data_path
 		self.datas = pd.read_csv(data_path)
 
@@ -50,6 +47,10 @@ class LinearRegression():
 		self.b = b
 
 		self.loss_save = []
+		self.slopes = []
+		self.intercepts = []
+
+		self.viz = viz
 
 
 	def predict(self, x):
@@ -59,11 +60,15 @@ class LinearRegression():
 		for epchs in range(self.epochs):
 			preds = self.predict(self.explanatory_variable)
 			loss = self.loss(self.labels, preds)
-			self.loss_save.append(loss)
 			jacobian = self.loss.jacobian(self.labels, preds, self.explanatory_variable)
 			self.a -= jacobian[0] * self.lr
 			self.b -= jacobian[1] * self.lr
-			# print(f'epochs {epchs + 1} loss -> ', loss)
+			if self.viz and (epchs % 100 == 0):
+				self.loss_save.append(loss)
+				self.slopes.append(self.a)
+				self.intercepts.append(self.b)
+			if (epchs % 100 == 0):
+				print(f'epochs {epchs + 1} loss -> ', loss)
 		return self.a, self.b
 
 	def save_weights(self, filename):

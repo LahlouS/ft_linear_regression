@@ -6,40 +6,38 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
-	test = LinearRegression(nb_epochs=100000)
+	model = LinearRegression(nb_epochs=10000, viz=True)
 
-	ret = test.train()
+	ret = model.train()
 
-	x = test.zscore(67000, test.mean_expl, test.std_expl)
-	x2 = test.zscore(139800, test.mean_expl, test.std_expl)
+	x = model.zscore(67000, model.mean_expl, model.std_expl)
+	x2 = model.zscore(139800, model.mean_expl, model.std_expl)
 
 	# just to draw the line
-	point1 = [67000, test.scale(test.predict(x), test.mean_label, test.std_label)]
-	point2 = [139800, test.scale(test.predict(x2), test.mean_label, test.std_label)]
+	point1 = [67000, model.scale(model.predict(x), model.mean_label, model.std_label)]
+	point2 = [139800, model.scale(model.predict(x2), model.mean_label, model.std_label)]
 
-	# on the original scale
-	print('test.std_expl ->', test.std_expl)
-	print('test.std_label ->', test.std_label)
-	print('test.mean_expl ->', test.mean_expl)
-	print('test.mean_label ->', test.mean_label)
-
-	# working with the normalised variable since model is trained on the none normalised variables
-	Z = pd.DataFrame({'norm_var': test.explanatory_variable, 'norm_label': test.labels})
+	Z = pd.DataFrame({'norm_var': model.explanatory_variable, 'norm_label': model.labels})
 	X = pd.read_csv('./data.csv')
 
 	visualising = Visualizer(X)
 
-	print('point1 --> ', point1)
-	print('point2 --> ', point2)
 	visualising.raw_data(np.array([point1, point2])).line(point1, point2).show()
 
-	plt.plot(test.loss_save)
+
+	plt.plot(model.loss_save)
 	plt.show()
 
+	visualising.df = Z
+	loss = model.loss_save
+	slope = model.slopes
+	intercept = model.intercepts
+	visualising.cost_function(model.loss, [slope, intercept, loss])
 
-	test.save_weights('model.ckpt')
 
-	weights = test.read_weights('model.ckpt')
+	model.save_weights('model.ckpt')
+
+	weights = model.read_weights('model.ckpt')
 
 
 
