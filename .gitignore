@@ -1,1 +1,4 @@
 __pycache__
+*.html
+visualization
+conda_dl.sh

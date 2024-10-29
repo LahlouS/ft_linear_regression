@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import ast
+import os
+
+def create_viz_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
 
 class L2_average():
 	def __init__(self, std_param, mode='linear'):
@@ -32,13 +37,13 @@ class LinearRegression():
 
 		self.std_label = np.std(self.labels)
 		self.std_expl = np.std(self.explanatory_variable)
-		
+
 		self.mean_label = np.mean(self.labels)
 		self.mean_expl = np.mean(self.explanatory_variable)
 
 		self.labels = self.zscore(self.labels, self.mean_label, self.std_label) # (self.labels - self.mean_label) / self.std_label
 		self.explanatory_variable = self.zscore(self.explanatory_variable, self.mean_expl, self.std_expl) # (self.explanatory_variable - self.mean_expl) / self.std_expl
-		
+
 		self.lr = lr
 		self.loss = L2_average(len(self.datas), 'linear')
 		self.epochs = nb_epochs
@@ -63,7 +68,7 @@ class LinearRegression():
 			jacobian = self.loss.jacobian(self.labels, preds, self.explanatory_variable)
 			self.a -= jacobian[0] * self.lr
 			self.b -= jacobian[1] * self.lr
-			if self.viz and (epchs % 100 == 0):
+			if self.viz and (epchs % 500 == 0):
 				self.loss_save.append(loss)
 				self.slopes.append(self.a)
 				self.intercepts.append(self.b)
