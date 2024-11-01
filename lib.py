@@ -8,6 +8,20 @@ def create_viz_folder(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
+class L1_average():
+	def __init__(self, std_param, mode='linear'):
+		self.std_param = std_param
+		self.mode = mode
+
+	def __call__(self, label, pred):
+		return (np.sum(np.abs(pred - label)) / self.std_param)
+
+	def jacobian(self, label, pred, expl_var):
+		return np.array([
+			np.sum((pred - label)* expl_var)*(1/self.std_param),
+			np.sum((pred - label))*(1/self.std_param)
+		])
+
 class L2_average():
 	def __init__(self, std_param, mode='linear'):
 		self.std_param = std_param
@@ -27,7 +41,7 @@ class L2_average():
 
 
 class LinearRegression():
-	def __init__(self, data_path='./data.csv', lr=1e-4, nb_epochs=1000, a=0, b=0, viz=False):
+	def __init__(self, data_path='./data.csv', lr=1e-3, nb_epochs=1000, a=0, b=0, viz=False, std=True):
 		self.data_path = data_path
 		self.datas = pd.read_csv(data_path)
 
@@ -41,13 +55,14 @@ class LinearRegression():
 		self.mean_label = np.mean(self.labels)
 		self.mean_expl = np.mean(self.explanatory_variable)
 
-		self.labels = self.zscore(self.labels, self.mean_label, self.std_label) # (self.labels - self.mean_label) / self.std_label
-		self.explanatory_variable = self.zscore(self.explanatory_variable, self.mean_expl, self.std_expl) # (self.explanatory_variable - self.mean_expl) / self.std_expl
+		if std:
+			self.labels = self.zscore(self.labels, self.mean_label, self.std_label) # (self.labels - self.mean_label) / self.std_label
+			self.explanatory_variable = self.zscore(self.explanatory_variable, self.mean_expl, self.std_expl) # (self.explanatory_variable - self.mean_expl) / self.std_expl
 
 		self.lr = lr
 		self.loss = L2_average(len(self.datas), 'linear')
 		self.epochs = nb_epochs
-
+		self.std = std
 		self.a = a
 		self.b = b
 
@@ -68,7 +83,7 @@ class LinearRegression():
 			jacobian = self.loss.jacobian(self.labels, preds, self.explanatory_variable)
 			self.a -= jacobian[0] * self.lr
 			self.b -= jacobian[1] * self.lr
-			if self.viz and (epchs % 500 == 0):
+			if self.viz and (epchs % 100 == 0):
 				self.loss_save.append(loss)
 				self.slopes.append(self.a)
 				self.intercepts.append(self.b)
